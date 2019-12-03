@@ -15,4 +15,7 @@ public class DataBase {
     public ArrayList<Account> obterListaDeContas(){
         return accounts;
     }
+
+    //public boolean saque
+    //public boolean deposito
 }

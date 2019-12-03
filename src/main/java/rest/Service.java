@@ -2,20 +2,38 @@ package rest;
 import database.Account;
 import database.DataBase;
 import database.Operation;
-import entities.Replica;
+import database.Replica;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/***********************************************************/
+import org.glassfish.jersey.client.ClientConfig;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+/***********************************************************/
 @Path("service")
 public class Service {
 
     private DataBase dataBase = new DataBase();
-    private ArrayList<Replica> replicas;
+    private ArrayList<Replica> replicas = new ArrayList<>();
     private boolean coordinator = false;
-    private int seed;
+    private int seed = 0;
+    private ArrayList<Operation> log = new ArrayList<>();
+
+    /***********************************************************/
+
+    private ClientConfig config = new ClientConfig();
+    private Client client = ClientBuilder.newClient(config);
+    private final String URI = "http://localhost:8080/api/v1";
+    private WebTarget target = client.target(UriBuilder.fromUri(URI).build());
+
+    /***********************************************************/
 
     @Path("accounts")
     @GET
@@ -27,11 +45,25 @@ public class Service {
     }
 
     @Path("replicas")
+    @GET
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response getReplicas() {
+        if(this.coordinator) System.out.println("sou coordenador");
+        HashMap<String, ArrayList<Replica>> hashMap = new HashMap<>();
+        hashMap.put("replicas", this.replicas);
+        if(this.replicas.isEmpty()) System.out.println("lista esta vazia");
+        return Response.ok(hashMap).build();
+    }
+
+    @Path("replicas")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
     public Response uploadReplicas(HashMap<String, ArrayList<Replica>> hashMap) {
         this.replicas = hashMap.get("replicas");
+        this.replicas.forEach(replica -> {
+            System.out.println(replica.getId());
+        });
         this.coordinator = true;
         return Response.ok("Replicas recebidas\n").build();
     }
@@ -52,17 +84,27 @@ public class Service {
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
     public Response operation(Operation operation){
         if(coordinator){
-            if(operation.getOperacao().equals("saque")){
-                //armazenamento temporário (write-ahead log)
-                //verificar nas replicas
-                    //200 OK - persistir dados
-                    //403 Forbidden - apagar
-            }else if(operation.getOperacao().equals("deposito")){
-                //armazenamento temporário (write-ahead log)
-                //verificar nas replicas
-                    //200 OK - persistir dados
-                    //403 Forbidden - apagar
-            }else return Response.ok("Operação inválida\n").build();
+
+            //armazenamento temporário (write-ahead log)
+            log.add(operation);
+
+            //verificar nas replicas
+            boolean flag = true;
+            for(Replica replica : replicas){
+                WebTarget t = client.target(UriBuilder.fromUri(replica.getEndpoint()).build());
+                t.path("service/operation").request().accept(MediaType.TEXT_PLAIN).get(String.class);
+
+                if(t.equals("403")){
+                    flag = false;
+                    break;
+                }
+            }
+
+            if(flag){
+                //200 OK - persistir dados
+            }else{
+                //403 Forbidden - apagar
+            }
         }else{
             //armazenamento temporário (write-ahead log)
             //responder 200 OK ou 403 Forbidden (P[200 OK] = 0.7)
@@ -77,11 +119,10 @@ public class Service {
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
     public Response commitDecision(String id){
         if(coordinator){
-            //400 Bad Request
-        }else{
-            //remover do armazenamento temporario
-            //adicionar no armazenamento permanente
+            //return 400 Bad Request
         }
+        //remover do armazenamento temporario
+        //adicionar no armazenamento permanente
         return Response.ok("Decision\n").build();
     }
 
@@ -91,10 +132,9 @@ public class Service {
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
     public Response rollbackDecision(String id){
         if(coordinator){
-            //400 Bad Request
-        }else{
-            //remover do armazenamento temporario
+            //return 400 Bad Request
         }
+        //remover do armazenamento temporario
         return Response.ok("Decision\n").build();
     }
 
@@ -116,6 +156,11 @@ public class Service {
     }
 
     /***********************************************************/
+
+
+
+    /***********************************************************/
+
     @GET
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
     public Response olaMundo() {
