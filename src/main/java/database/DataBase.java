@@ -6,14 +6,16 @@ public class DataBase {
     private static DataBase instance;
     private ArrayList<Account> accounts;
     private ArrayList<Replica> replicas;
-    private ArrayList<Operation> log;
+    private ArrayList<Operation> operations; //lista temporaria
+    private ArrayList<Action> actions;       //lista permanente
     private boolean coordinator;
     private int seed;
 
     public DataBase() {
         this.accounts = new ArrayList<>();
         this.replicas = new ArrayList<>();
-        this.log = new ArrayList<>();
+        this.operations = new ArrayList<>();
+        this.actions = new ArrayList<>();
         this.coordinator = false;
         this.seed = 0;
 
@@ -33,24 +35,27 @@ public class DataBase {
         return accounts;
     }
 
-    public void setAccounts(ArrayList<Account> accounts) {
-        this.accounts = accounts;
-    }
-
     public ArrayList<Replica> getReplicas() {
         return replicas;
     }
+
+    public ArrayList<Action> getActions(){ return actions; }
 
     public void setReplicas(ArrayList<Replica> replicas) {
         this.replicas = replicas;
     }
 
-    public ArrayList<Operation> getLog() {
-        return log;
+    public void addOperation(Operation operation) {
+        this.operations.add(operation);
     }
 
-    public void addOperation(Operation operation) {
-        this.log.add(operation);
+    public void removeOperation(String id) {
+        for(Operation operation : operations){
+            if(operation.getId().equals(id)){
+                this.operations.remove(operation);
+                return;
+            }
+        }
     }
 
     public boolean isCoordinator(){ return this.coordinator; }
@@ -69,6 +74,8 @@ public class DataBase {
         this.replicas.clear();
     }
 
-    //public boolean saque
-    //public boolean deposito
+    public void addActions(String id, String status) {
+        this.actions.add(new Action(id, status));
+    }
+
 }

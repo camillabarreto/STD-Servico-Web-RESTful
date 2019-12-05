@@ -1,27 +1,25 @@
 package rest;
-import database.Account;
-import database.DataBase;
-import database.Operation;
-import database.Replica;
+import database.*;
+
 import javax.ws.rs.*;
 import java.util.ArrayList;
 import java.util.HashMap;
-
-/***********************************************************/
+import java.util.Random;
+/**/
 import org.glassfish.jersey.client.ClientConfig;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
-/***********************************************************/
+
 
 @Path("service")
 public class Service {
 
     private DataBase dataBase = DataBase.getInstance();
-
 
     /***********************************************************/
     private ClientConfig config = new ClientConfig();
@@ -33,7 +31,7 @@ public class Service {
     @Path("accounts")
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response showAccounts() {
+    public Response getAccounts() {
         HashMap<String, ArrayList<Account>> hashMap = new HashMap<>();
         hashMap.put("contas", this.dataBase.getAccounts());
         return Response.ok(hashMap).build();
@@ -54,7 +52,7 @@ public class Service {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
-    public Response uploadReplicas(HashMap<String, ArrayList<Replica>> hashMap) {
+    public Response setReplicas(HashMap<String, ArrayList<Replica>> hashMap) {
         dataBase.setReplicas(hashMap.get("replicas"));
         dataBase.setCoordinator(true);
         return Response.ok("Replicas recebidas\n").build();
@@ -64,7 +62,7 @@ public class Service {
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
-    public Response deleteReplicas(HashMap<String, ArrayList<Replica>> hashMap) {
+    public Response clearReplicas(HashMap<String, ArrayList<Replica>> hashMap) {
         dataBase.clearReplicas();
         dataBase.setCoordinator(false);
         return Response.ok("Replicas apagadas\n").build();
@@ -74,35 +72,37 @@ public class Service {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
-    public Response operation(Operation operation){
+    public Response addOperation(Operation operation){
         if(dataBase.isCoordinator()){
-
-            //armazenamento temporário (write-ahead log)
             dataBase.addOperation(operation);
-
-            //verificar nas replicas
             boolean flag = true;
-//            for(Replica replica : replicas){
-//                WebTarget t = client.target(UriBuilder.fromUri(replica.getEndpoint()).build());
-//                t.path("service/operation").request().accept(MediaType.TEXT_PLAIN).get(String.class);
-//
-//                if(t.equals("403")){
-//                    flag = false;
-//                    break;
-//                }
-//            }
-
+            for(Replica replica : dataBase.getReplicas()){
+                WebTarget t = client.target(UriBuilder.fromUri(replica.getEndpoint()).build());
+                Response response = t.path("service").path("operation").request(MediaType.APPLICATION_JSON).put(Entity.entity(operation,MediaType.APPLICATION_JSON), Response.class);
+                if(response.getEntity().equals("403")){
+                    flag = false;
+                    break;
+                }
+            }
             if(flag){
-                //200 OK - persistir dados
+                //enviar decisao PUT
+                //realizar a operação
+                this.dataBase.addActions(operation.getId(), "success");
+                return Response.ok("200 OK\n").build();
             }else{
-                //403 Forbidden - apagar
+                //enviar decisao DELETE
+                this.dataBase.addActions(operation.getId(), "fail");
+                return Response.ok("403 Forbidden\n").build();
             }
         }else{
-            //armazenamento temporário (write-ahead log)
-            //responder 200 OK ou 403 Forbidden (P[200 OK] = 0.7)
-
+            this.dataBase.addOperation(operation);
+            Random gerador = new Random(this.dataBase.getSeed());
+            if(gerador.nextFloat() <= 0.7){
+                return Response.ok("200").build();
+            }else{
+                return Response.ok("403").build();
+            }
         }
-        return Response.ok("Operação realizada\n").build();
     }
 
     @Path("decision")
@@ -113,9 +113,9 @@ public class Service {
         if(dataBase.isCoordinator()){
             //return 400 Bad Request
         }
-        //remover do armazenamento temporario
-        //adicionar no armazenamento permanente
-        return Response.ok("Decision\n").build();
+        this.dataBase.removeOperation(id);
+        this.dataBase.addActions(id, "success");
+        return Response.ok("ACK\n").build();
     }
 
     @Path("decision")
@@ -124,18 +124,20 @@ public class Service {
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
     public Response rollbackDecision(String id){
         if(dataBase.isCoordinator()){
-            //return 400 Bad Request
+            return Response.ok("400 Bad Request\n").build();
         }
-        //remover do armazenamento temporario
-        return Response.ok("Decision\n").build();
+        this.dataBase.removeOperation(id);
+        this.dataBase.addActions(id, "fail");
+        return Response.ok("ACK\n").build();
     }
 
     @Path("historic")
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response showHistoric() {
-        //mostrar acoes (id e status)
-        return Response.ok().build();
+    public Response getHistoric() {
+        HashMap<String, ArrayList<Action>> hashMap = new HashMap<>();
+        hashMap.put("acoes", this.dataBase.getActions());
+        return Response.ok(hashMap).build();
     }
 
     @Path("seed")
@@ -144,25 +146,16 @@ public class Service {
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
     public Response loadSeed(int seed) {
         dataBase.setSeed(seed);
+        if (dataBase.isCoordinator()){
+            WebTarget t = client.target(UriBuilder.fromUri(dataBase.getReplicas().get(0).getEndpoint()).build());
+            t.path("service").path("seed").request(MediaType.APPLICATION_JSON).post(Entity.entity(12322,MediaType.APPLICATION_JSON), Response.class);
+
+            t = client.target(UriBuilder.fromUri(dataBase.getReplicas().get(1).getEndpoint()).build());
+            t.path("service").path("seed").request(MediaType.APPLICATION_JSON).post(Entity.entity(12333,MediaType.APPLICATION_JSON), Response.class);
+
+            return Response.ok("200 OK").build();
+        }
         return Response.ok().build();
-    }
-
-    /***********************************************************/
-
-
-    @GET
-    @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
-    public Response olaMundo() {
-        String mensagem = "Ola mundo\n";
-        return Response.ok(mensagem).build();
-    }
-
-    @Path("{nome}")
-    @GET
-    @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
-    public Response olaNome(@PathParam("nome") String nome) {
-        String mensagem = "Ola " + nome + "\n";
-        return Response.ok(mensagem).build();
     }
 
 }
