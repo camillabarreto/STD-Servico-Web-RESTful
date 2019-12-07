@@ -63,7 +63,7 @@ public class Service02 {
     }
 
     @Path("operation")
-    @PUT
+    @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response addOperation(Operation operation){
         if(dataBase.isCoordinator()){
@@ -83,7 +83,7 @@ public class Service02 {
             if(flag){
                 for(Replica replica : dataBase.getReplicas()){
                     WebTarget t = client.target(UriBuilder.fromUri(replica.getEndpoint()).build());
-                    Response response = t.path(replica.getId()).path("decision").path("/"+operation.getId()).request().post(Entity.entity(operation.getId(),MediaType.APPLICATION_JSON), Response.class);
+                    Response response = t.path(replica.getId()).path("decision").path("/"+operation.getId()).request().put(Entity.entity(operation.getId(),MediaType.APPLICATION_JSON), Response.class);
                     System.out.println("PUT - Status de resposta: "+response.getStatus());
                 }
                 performOperation(operation);
@@ -136,7 +136,7 @@ public class Service02 {
     }
 
     @Path("decision/{id}")
-    @POST
+    @PUT
     public Response commitDecision(@PathParam("id") String id){
         if(dataBase.isCoordinator()){
             return Response.status(400).build();
