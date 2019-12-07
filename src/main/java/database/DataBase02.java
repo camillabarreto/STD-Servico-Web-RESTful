@@ -44,6 +44,8 @@ public class DataBase02 {
 
     public ArrayList<Action> getActions(){ return actions; }
 
+    public ArrayList<Operation> getOperations() { return operations; }
+
     public void setReplicas(ArrayList<Replica> replicas) {
         this.replicas = replicas;
     }
@@ -52,13 +54,14 @@ public class DataBase02 {
         this.operations.add(operation);
     }
 
-    public void removeOperation(String id) {
+    public Operation removeOperation(String id) {
         for(Operation operation : operations){
             if(operation.getId().equals(id)){
                 this.operations.remove(operation);
-                return;
+                return operation;
             }
         }
+        return null;
     }
 
     public boolean isCoordinator(){ return this.coordinator; }
