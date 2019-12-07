@@ -83,7 +83,7 @@ public class Service03 {
             if(flag){
                 for(Replica replica : dataBase.getReplicas()){
                     WebTarget t = client.target(UriBuilder.fromUri(replica.getEndpoint()).build());
-                    Response response = t.path(replica.getId()).path("decision").request().put(Entity.entity(operation.getId(),MediaType.APPLICATION_JSON), Response.class);
+                    Response response = t.path(replica.getId()).path("decision").path("/"+operation.getId()).request().put(Entity.entity(operation.getId(),MediaType.APPLICATION_JSON), Response.class);
                     System.out.println("PUT - Status de resposta: "+response.getStatus());
                 }
                 performOperation(operation);
@@ -135,10 +135,9 @@ public class Service03 {
         }
     }
 
-    @Path("decision")
+    @Path("decision/{id}")
     @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response commitDecision(String id){
+    public Response commitDecision(@PathParam("id") String id){
         if(dataBase.isCoordinator()){
             return Response.status(400).build();
         }
