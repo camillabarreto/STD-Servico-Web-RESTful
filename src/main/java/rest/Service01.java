@@ -20,12 +20,9 @@ import java.util.Random;
 public class Service01 {
 
     private DataBase01 dataBase = DataBase01.getInstance();
-    String name = "service01";
-
-    /***********************************************************/
+    static private String name = "service01";
     private ClientConfig config = new ClientConfig();
     private Client client = ClientBuilder.newClient(config);
-    /***********************************************************/
 
     @Path("accounts")
     @GET
@@ -51,7 +48,7 @@ public class Service01 {
     public Response setReplicas(HashMap<String, ArrayList<Replica>> hashMap) {
         dataBase.setReplicas(hashMap.get("replicas"));
         dataBase.setCoordinator(true);
-        return Response.ok().build();
+        return Response.ok(name+" é o novo COORDENADOR").build();
     }
 
     @Path("replicas")
@@ -60,7 +57,7 @@ public class Service01 {
     public Response clearReplicas(HashMap<String, ArrayList<Replica>> hashMap) {
         dataBase.clearReplicas();
         dataBase.setCoordinator(false);
-        return Response.ok().build();
+        return Response.ok(name+" deixou de ser COORDENADOR").build();
     }
 
     @Path("operation")
@@ -68,23 +65,23 @@ public class Service01 {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response addOperation(Operation operation){
         if(dataBase.isCoordinator()){
-            System.out.println("sou coordenador "+name);
+            System.out.println("COORDENADOR "+name);
             dataBase.addOperation(operation);
             boolean flag = true;
             for(Replica replica : dataBase.getReplicas()){
                 WebTarget t = client.target(UriBuilder.fromUri(replica.getEndpoint()).build());
-                Response response = t.path(replica.getId()).path("operation").request(MediaType.TEXT_PLAIN + ";charset=utf-8").post(Entity.entity(operation,MediaType.APPLICATION_JSON), Response.class);
+                Response response = t.path("operation").request(MediaType.TEXT_PLAIN + ";charset=utf-8").post(Entity.entity(operation,MediaType.APPLICATION_JSON), Response.class);
                 System.out.println("Status de resposta: "+response.getStatus());
 
                 if(response.getStatus() == 403){
                     flag = false;
-                    break;
+                    //break;
                 }
             }
             if(flag){
                 for(Replica replica : dataBase.getReplicas()){
                     WebTarget t = client.target(UriBuilder.fromUri(replica.getEndpoint()).build());
-                    Response response = t.path(replica.getId()).path("decision").path("/"+operation.getId()).request().put(Entity.entity(operation.getId(),MediaType.APPLICATION_JSON), Response.class);
+                    Response response = t.path("decision").path("/"+operation.getId()).request().put(Entity.entity(operation.getId(),MediaType.APPLICATION_JSON), Response.class);
                     System.out.println("PUT - Status de resposta: "+response.getStatus());
                 }
                 performOperation(operation);
@@ -93,7 +90,7 @@ public class Service01 {
             }else{
                 for(Replica replica : dataBase.getReplicas()){
                     WebTarget t = client.target(UriBuilder.fromUri(replica.getEndpoint()).build());
-                    Response response = t.path(replica.getId()).path("decision").path("/"+operation.getId()).request().delete();
+                    Response response = t.path("decision").path("/"+operation.getId()).request().delete();
                     System.out.println("DELETE - Status de resposta: "+response.getStatus());
                 }
                 this.dataBase.removeOperation(operation.getId());
@@ -117,7 +114,6 @@ public class Service01 {
             if(account.getNumero().equals(operation.getConta())){
                 String saldo = account.getSaldo();
                 saldo = saldo.replaceAll(",", ".");
-                System.out.println("GET SALDO : " + saldo);
                 double dsaldo = Double.parseDouble(saldo);
 
                 String valor = operation.getValor();
@@ -130,6 +126,8 @@ public class Service01 {
                     dsaldo = dsaldo + dvalor;
                 }
                 saldo = ""+dsaldo;
+                saldo = saldo.replaceAll("\\.",",");
+                System.out.println("SALDO ATUAL: " + saldo);
                 account.setSaldo(saldo);
                 break;
             }
@@ -195,11 +193,11 @@ public class Service01 {
         if (dataBase.isCoordinator()){
             Replica replica = dataBase.getReplicas().get(0);
             WebTarget t = client.target(UriBuilder.fromUri(replica.getEndpoint()).build());
-            Response response = t.path(replica.getId()).path("seed").request().post(Entity.entity(12322,MediaType.APPLICATION_JSON), Response.class);
+            Response response = t.path("seed").request().post(Entity.entity(seed,MediaType.APPLICATION_JSON), Response.class);
 
             replica = dataBase.getReplicas().get(1);
             t = client.target(UriBuilder.fromUri(replica.getEndpoint()).build());
-            response = t.path(replica.getId()).path("seed").request().post(Entity.entity(12333,MediaType.APPLICATION_JSON), Response.class);
+            response = t.path("seed").request().post(Entity.entity(seed+11,MediaType.APPLICATION_JSON), Response.class);
 
             return Response.ok().build();
         }
