@@ -26,7 +26,7 @@ Para iniciar a simulação é necessário clonar esse repositório na sua máqui
 
 #### Simular
 
-Agora abra um cliente HTTP e utilize os recursos. Acesse [API REST](https://github.com/STD29006-classroom/2019-02-projeto-pratico-02-camillabarreto/blob/master/apiary.apib) para ter acesso a documentação.
+Agora abra um cliente HTTP e utilize os recursos. Acesse [API REST](https://stdprojetopratico02.docs.apiary.io) ou [apiary.apib](https://github.com/STD29006-classroom/2019-02-projeto-pratico-02-camillabarreto/blob/master/apiary.apib) para ter acesso a documentação.
 
 ## Funcionalidades implementadas
 
