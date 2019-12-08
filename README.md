@@ -32,12 +32,12 @@ Agora abra um cliente HTTP e utilize os recursos [API REST](https://github.com/S
 
 | Recurso | Verbo | Implementado |
 | :--------------: | :--------------: | :--------------: |
-| accounts | GET | X |
-| replicas | GET | X |
-| replicas | POST | X |
-| replicas | DELETE | X |
-| operation | POST | X |
-| decision/{id_operacao} | PUT | X |
-| decision/{id_operacao} | DELETE | X |
-| historic | GET | X |
-| seed | POST | X |
+| accounts | GET | OK |
+| replicas | GET | OK |
+| replicas | POST | OK |
+| replicas | DELETE | OK |
+| operation | POST | OK |
+| decision/{id_operacao} | PUT | OK |
+| decision/{id_operacao} | DELETE | OK |
+| historic | GET | OK |
+| seed | POST | OK |
