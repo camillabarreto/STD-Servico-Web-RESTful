@@ -2,7 +2,7 @@
 
 ## Preparar simulação
 
-Para iniciar a simulação é necessário clonar esse repositório na sua máquina, compilar o projeto e executar o projeto. Abra um terminal e execute os comandos listados:
+Para iniciar a simulação é necessário clonar esse repositório na sua máquina, compilar e executar o projeto. Abra um terminal e execute os comandos listados:
 
 #### Clonar
 
@@ -26,7 +26,7 @@ Para iniciar a simulação é necessário clonar esse repositório na sua máqui
 
 #### Simular
 
-Agora basta abrir um cliente HTTP e utilizar os recursos da [API REST](https://github.com/camillabarreto/std-projeto-pratico-02/blob/master/apiary.apib).
+Agora abra um cliente HTTP e utilize os recursos [API REST](https://github.com/camillabarreto/std-projeto-pratico-02/blob/master/apiary.apib).
 
 ## Funcionalidades implementadas
 
