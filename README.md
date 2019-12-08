@@ -13,7 +13,7 @@ Para iniciar a simulação é necessário clonar esse repositório na sua máqui
 #### Compilar
 
 ```shell
-  cd std-projeto-pratico-02
+  cd 2019-02-projeto-pratico-02-camillabarreto
 
   ./gradlew build
 ```
