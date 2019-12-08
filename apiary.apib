@@ -1,0 +1,202 @@
+FORMAT: 1A
+HOST: http://localhost:8080/api/v1/service01
+
+# Simulação do protocolo 2PC
+
+Essa API REST (API HTTP) permite realizar
+uma simulação do protocolo de *commit* em duas fases 
+(*Two-phase Commit* – 2PC) em uma base de dados de contas bancária. 
+Para essa simulação deve ser assumido que os processos estarão 100% 
+do tempo disponíveis e nunca irão falhar. A aplicação poderá assumir 
+o papel de coordenador ou de réplica, cabendo ao usuário indicar
+qual o papel de cada instância da aplicação. 
+
+O cenário da simulação consiste em 1 processo coordenador 
+e 2 processos como réplicas. *Endpoints* disponíveis para simulação: 
+- http://localhost:8080/api/v1/service01
+- http://localhost:8080/api/v1/service02
+- http://localhost:8080/api/v1/service03
+
+
+# Group Service
+
+
+## Contas  [/accounts]
+
+
+### Obter lista de contas [GET]
+
++ Response 200 (application/json)
+
+    {
+        "contas": [
+            {
+                "numero": "1234",
+                "saldo": "100,0"
+            },
+            {
+                "numero": "4345",
+                "saldo": "50,00"
+            },
+            {
+                "numero": "5678",
+                "saldo": "250,00"
+            }
+        ]
+    }
+
+
+## Replicas  [/replicas]
+
+
+### Carregar lista de réplicas [POST]
+
+Para carregar a lista de réplicas deve ser fornecido
+um documento JSON contendo os respectivos dados.
+
++ id (*string*) - Identificação da réplica.
++ endpoint (*string*) - Endpoint da réplica.
+
++ Request (application/json)
+
+    {
+        "replicas": [
+            {
+                "id": "service02",
+                "endpoint": "http://localhost:8080/api/v1/service02"
+            },
+            {
+                "id": "service03",
+                "endpoint": "http://localhost:8080/api/v1/service03"
+            }
+        ]
+    }
+
++ Response 200 (text/plain)
+
+    service01 é o novo COORDENADOR
+
+
+### Apagar lista de réplicas [DELETE]
+
++ Response 200 (text/plain)
+
+    service01 deixou de ser COORDENADOR
+
+
+### Obter lista de réplicas [GET]
+
++ Response (application/json)
+
+    {
+        "replicas": [
+            {
+                "id": "service02",
+                "endpoint": "http://localhost:8080/api/v1/service02"
+            },
+            {
+                "id": "service03",
+                "endpoint": "http://localhost:8080/api/v1/service03"
+            }
+        ]
+    }
+
+
+## Operação  [/operation]
+
+
+### Enviar operação [POST]
+
+Para carregar uma operação deve ser fornecido
+um documento JSON contendo os respectivos dados.
+
++ id (*string*) - Identificador único da operação.
++ operacao (*string*) - Tipo de operação (debito ou credito).
++ conta (*string*) - Número da conta.
++ valor (*string*) - Valor a ser movimentado.
+
++ Request (application/json)
+
+    {
+        "id" : "19148f6d-1318-4887-b2b6-215bfc8ac35f",
+        "operacao" : "debito",
+        "conta" : "1234",
+        "valor" : "10,00"
+    }
+
++ Response 201
+
+    + Headers
+
+
+    + Body
+
++ Response 403
+
+
+## Decisão  [/decision/{id_operacao}]
+
+
++ Parameters
+    + id_operacao: 215bfc8ac35f (string) - Identificação da operação.
+
+
+### Confirmar operação [PUT]
+
++ Response 200
+
++ Response 404
+
+
+### Deletar operação [DELETE]
+
++ Response 200
+
++ Response 404
+
+
+## Histórico [/historic]
+
+
+### Obter histórico de ações processadas [GET]
+
++ Response 200 (application/json)
+    
+    {
+        "acoes": [
+            {
+                "id": "0123",
+                "status": "success"
+            },
+            {
+                "id": "9876",
+                "status": "fail"
+            }
+        ]
+    }
+
+
+## Semente [/seed]
+
+
+### Carregar semente [POST]
+
+Para carregar uma semente que deve auxiliar na geração de 
+números pseudo aleatórios deve ser fornecido um documento JSON
+contendo o seguinte dado.
+
++ seed (*string*) - Semente.
+
++ Request (application/json)
+
+    {
+        "seed": "12322"
+    }
+
++ Response 200
+
+    + Headers
+
+
+    + Body
+
