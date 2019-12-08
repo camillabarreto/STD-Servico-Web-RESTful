@@ -7,7 +7,7 @@ Para iniciar a simulação é necessário clonar esse repositório na sua máqui
 #### Clonar
 
 ```shell
-  git clone https://github.com/camillabarreto/std-projeto-pratico-02
+  git clone https://github.com/STD29006-classroom/2019-02-projeto-pratico-02-camillabarreto
 ```
 
 #### Compilar
@@ -26,7 +26,7 @@ Para iniciar a simulação é necessário clonar esse repositório na sua máqui
 
 #### Simular
 
-Agora abra um cliente HTTP e utilize os recursos [API REST](https://github.com/camillabarreto/std-projeto-pratico-02/blob/master/apiary.apib).
+Agora abra um cliente HTTP e utilize os recursos [API REST](https://github.com/STD29006-classroom/2019-02-projeto-pratico-02-camillabarreto/blob/master/apiary.apib).
 
 ## Funcionalidades implementadas
 
