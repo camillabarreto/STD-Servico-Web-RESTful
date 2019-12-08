@@ -72,7 +72,7 @@ public class Service03 {
             boolean flag = true;
             for(Replica replica : dataBase.getReplicas()){
                 WebTarget t = client.target(UriBuilder.fromUri(replica.getEndpoint()).build());
-                Response response = t.path(replica.getId()).path("operation").request(MediaType.TEXT_PLAIN + ";charset=utf-8").put(Entity.entity(operation,MediaType.APPLICATION_JSON), Response.class);
+                Response response = t.path(replica.getId()).path("operation").request(MediaType.TEXT_PLAIN + ";charset=utf-8").post(Entity.entity(operation,MediaType.APPLICATION_JSON), Response.class);
                 System.out.println("Status de resposta: "+response.getStatus());
 
                 if(response.getStatus() == 403){
