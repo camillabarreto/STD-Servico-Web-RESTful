@@ -31,7 +31,7 @@ Agora basta abrir um cliente HTTP e utilizar os recursos da [API REST](https://g
 ## Funcionalidades implementadas
 
 | Recurso | Verbo | Implementado |
-| -------------- | -------------- | -------------- |
+| :--------------: | :--------------: | :--------------: |
 | accounts | GET | X |
 | replicas | GET | X |
 | replicas | POST | X |
