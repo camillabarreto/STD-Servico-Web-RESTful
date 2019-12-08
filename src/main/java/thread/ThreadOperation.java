@@ -18,19 +18,25 @@ public class ThreadOperation extends Thread {
     private Replica replica;
     private ClientConfig config = new ClientConfig();
     private Client client = ClientBuilder.newClient(config);
+    private int status;
 
     public ThreadOperation(Operation operation, Replica replica) {
         this.operation = operation;
         this.replica = replica;
+        this.status = 0;
     }
 
     @Override
     public void run() {
         super.run();
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>> enviando operação");
-        WebTarget t = client.target(UriBuilder.fromUri(replica.getEndpoint()).build());
-        Response response = t.path("operation").request(MediaType.TEXT_PLAIN + ";charset=utf-8").post(Entity.entity(operation,MediaType.APPLICATION_JSON), Response.class);
-        System.out.println("Status de resposta: "+response.getStatus());
+        WebTarget t = this.client.target(UriBuilder.fromUri(this.replica.getEndpoint()).build());
+        Response response = t.path("operation").request(MediaType.TEXT_PLAIN + ";charset=utf-8").post(Entity.entity(this.operation,MediaType.APPLICATION_JSON), Response.class);
+        this.status = response.getStatus();
+    }
+
+    public int getStatus() {
+        return status;
     }
 
     @Override

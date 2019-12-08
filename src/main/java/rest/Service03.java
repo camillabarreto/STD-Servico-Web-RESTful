@@ -2,6 +2,7 @@ package rest;
 
 import database.*;
 import org.glassfish.jersey.client.ClientConfig;
+import thread.ThreadOperation;
 
 import javax.ws.rs.*;
 import javax.ws.rs.client.Client;
@@ -22,6 +23,7 @@ public class Service03 {
     static private String name = "service03";
     private ClientConfig config = new ClientConfig();
     private Client client = ClientBuilder.newClient(config);
+    private ArrayList<ThreadOperation> threadOperations = new ArrayList<>();
 
     @Path("accounts")
     @GET
@@ -62,21 +64,28 @@ public class Service03 {
     @Path("operation")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response addOperation(Operation operation){
+    public Response addOperation(Operation operation) throws InterruptedException {
         if(dataBase.isCoordinator()){
             System.out.println("COORDENADOR "+name);
             dataBase.addOperation(operation);
             boolean flag = true;
-            for(Replica replica : dataBase.getReplicas()){
-                WebTarget t = client.target(UriBuilder.fromUri(replica.getEndpoint()).build());
-                Response response = t.path("operation").request(MediaType.TEXT_PLAIN + ";charset=utf-8").post(Entity.entity(operation,MediaType.APPLICATION_JSON), Response.class);
-                System.out.println("Status de resposta: "+response.getStatus());
 
-                if(response.getStatus() == 403){
+            for(Replica replica : dataBase.getReplicas()){
+                ThreadOperation t = new ThreadOperation(operation, replica);
+                this.threadOperations.add(t);
+                t.start();
+            }
+
+            threadOperations.get(0).join();
+            threadOperations.get(1).join();
+
+            for(ThreadOperation t : threadOperations){
+                if(t.getStatus() == 403){
                     flag = false;
-                    //break;
+                    break;
                 }
             }
+
             if(flag){
                 for(Replica replica : dataBase.getReplicas()){
                     WebTarget t = client.target(UriBuilder.fromUri(replica.getEndpoint()).build());
