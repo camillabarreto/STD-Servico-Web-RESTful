@@ -28,22 +28,22 @@ e 2 processos como réplicas. *Endpoints* disponíveis para simulação:
 
 + Response 200 (application/json)
 
-    {
-        "contas": [
-            {
-                "numero": "1234",
-                "saldo": "100,0"
-            },
-            {
-                "numero": "4345",
-                "saldo": "50,00"
-            },
-            {
-                "numero": "5678",
-                "saldo": "250,00"
-            }
-        ]
-    }
+        {
+            "contas": [
+                {
+                    "numero": "1234",
+                    "saldo": "100,0"
+                },
+                {
+                    "numero": "4345",
+                    "saldo": "50,00"
+                },
+                {
+                    "numero": "5678",
+                    "saldo": "250,00"
+                }
+            ]
+        }
 
 
 ## Replicas  [/replicas]
@@ -59,47 +59,47 @@ um documento JSON contendo os respectivos dados.
 
 + Request (application/json)
 
-    {
-        "replicas": [
-            {
-                "id": "service02",
-                "endpoint": "http://localhost:8080/api/v1/service02"
-            },
-            {
-                "id": "service03",
-                "endpoint": "http://localhost:8080/api/v1/service03"
-            }
-        ]
-    }
+        {
+            "replicas": [
+                {
+                    "id": "service02",
+                    "endpoint": "http://localhost:8080/api/v1/service02"
+                },
+                {
+                    "id": "service03",
+                    "endpoint": "http://localhost:8080/api/v1/service03"
+                }
+            ]
+        }
 
 + Response 200 (text/plain)
 
-    service01 é o novo COORDENADOR
+        service01 é o novo COORDENADOR
 
 
 ### Apagar lista de réplicas [DELETE]
 
 + Response 200 (text/plain)
 
-    service01 deixou de ser COORDENADOR
+        service01 deixou de ser COORDENADOR
 
 
 ### Obter lista de réplicas [GET]
 
-+ Response (application/json)
++ Response 200 (application/json)
 
-    {
-        "replicas": [
-            {
-                "id": "service02",
-                "endpoint": "http://localhost:8080/api/v1/service02"
-            },
-            {
-                "id": "service03",
-                "endpoint": "http://localhost:8080/api/v1/service03"
-            }
-        ]
-    }
+        {
+            "replicas": [
+                {
+                    "id": "service02",
+                    "endpoint": "http://localhost:8080/api/v1/service02"
+                },
+                {
+                    "id": "service03",
+                    "endpoint": "http://localhost:8080/api/v1/service03"
+                }
+            ]
+        }
 
 
 ## Operação  [/operation]
@@ -117,19 +117,15 @@ um documento JSON contendo os respectivos dados.
 
 + Request (application/json)
 
-    {
-        "id" : "19148f6d-1318-4887-b2b6-215bfc8ac35f",
-        "operacao" : "debito",
-        "conta" : "1234",
-        "valor" : "10,00"
-    }
+        {
+            "id" : "19148f6d-1318-4887-b2b6-215bfc8ac35f",
+            "operacao" : "debito",
+            "conta" : "1234",
+            "valor" : "10,00"
+        }
 
 + Response 201
 
-    + Headers
-
-
-    + Body
 
 + Response 403
 
@@ -162,18 +158,18 @@ um documento JSON contendo os respectivos dados.
 
 + Response 200 (application/json)
     
-    {
-        "acoes": [
-            {
-                "id": "0123",
-                "status": "success"
-            },
-            {
-                "id": "9876",
-                "status": "fail"
-            }
-        ]
-    }
+        {
+            "acoes": [
+                {
+                    "id": "0123",
+                    "status": "success"
+                },
+                {
+                    "id": "9876",
+                    "status": "fail"
+                }
+            ]
+        }
 
 
 ## Semente [/seed]
@@ -189,14 +185,8 @@ contendo o seguinte dado.
 
 + Request (application/json)
 
-    {
-        "seed": "12322"
-    }
+        {
+            "seed": "12322"
+        }
 
 + Response 200
-
-    + Headers
-
-
-    + Body
-
